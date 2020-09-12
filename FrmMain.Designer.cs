@@ -436,6 +436,7 @@
             this.cboExportAs.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.cboExportAs.FormattingEnabled = true;
             this.cboExportAs.Items.AddRange(new object[] {
+            "Clipboard text separated by newlines",
             "Json array file",
             "Text files folder"});
             this.cboExportAs.Location = new System.Drawing.Point(64, 440);
@@ -490,6 +491,7 @@
             this.Controls.Add(this.btnExecute);
             this.Name = "FrmMain";
             this.Text = "Leftware Template Util";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.FrmMain_FormClosing);
             this.Load += new System.EventHandler(this.FrmMain_Load);
             this.grpSourceInline.ResumeLayout(false);
             this.grpSourceFile.ResumeLayout(false);

@@ -1,6 +1,6 @@
-﻿namespace Leftware.Utils.TemplateUtil
+﻿namespace Leftware.Utils.TemplateUtil.Model
 {
-    internal class TemplateSourceModel
+    public class TemplateSourceModel
     {
         public SourceType SourceType { get; set; }
         public SourceFormat SourceFormat { get; set; }

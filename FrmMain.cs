@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Leftware.Utils.TemplateUtil.Model;
+using Newtonsoft.Json;
 using Scriban.Runtime;
 using System;
 using System.Collections.Generic;
@@ -38,37 +39,17 @@ namespace Leftware.Utils.TemplateUtil
             Initialize();
         }
 
+        private void FrmMain_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            SaveEnvironmentValues();
+        }
+
         private void btnSaveSource_Click(object sender, EventArgs e)
         {
             var name = Prompt.GetText("Source name", "Leftware Template");
             if (name == null) return;
 
-            var sourceType = (SourceType)Enum.Parse(typeof(SourceType), cboSourceType.SelectedItem.ToString());
-            var sourceFormat = sourceType == SourceType.Database ?
-                SourceFormat.DataTable :
-                (SourceFormat)Enum.Parse(typeof(SourceFormat), cboSourceFormat.SelectedIndex.ToString());
-
-            var source = new TemplateSourceModel
-            {
-                SourceType = sourceType,
-                SourceFormat = sourceFormat
-            };
-            switch (sourceType)
-            {
-                case SourceType.Inline:
-                    source.Content = sciSource.Text;
-                    break;
-
-                case SourceType.File:
-                    source.FilePath = txtSourceFile.Text;
-                    break;
-
-                case SourceType.Database:
-                    source.DatabaseType = (DatabaseType)cboDbType.SelectedIndex;
-                    source.ConnectionString = txtConnectionString.Text;
-                    source.Query = sciQuery.Text;
-                    break;
-            }
+            TemplateSourceModel source = GetTemplateSourceModel();
 
             var json = JsonConvert.SerializeObject(source);
             var sourcesFolder = Utils.GetAppFolder(AppFolder.Sources);
@@ -93,15 +74,7 @@ namespace Leftware.Utils.TemplateUtil
             var json = File.ReadAllText(path);
             var src = JsonConvert.DeserializeObject<TemplateSourceModel>(json);
 
-            cboSourceType.SelectedItem = src.SourceType.ToString();
-            cboSourceFormat.SelectedIndex = src.SourceType == SourceType.Database ?
-                -1 :
-                (int)src.SourceFormat;
-            sciSource.Text = src.Content;
-            txtSourceFile.Text = src.FilePath;
-            cboDbType.SelectedIndex = (int)src.DatabaseType;
-            txtConnectionString.Text = src.ConnectionString;
-            sciQuery.Text = src.Query;
+            LoadTemplateSourceModel(src);
         }
 
         private void btnOpenSourceFolder_Click(object sender, EventArgs e)
@@ -152,6 +125,11 @@ namespace Leftware.Utils.TemplateUtil
             var exportMode = (ExportMode)cboExportAs.SelectedIndex;
             switch (exportMode)
             {
+                case ExportMode.ClipboardSeparatedText:
+                    var txt = string.Join(Environment.NewLine, _result.Select(itm => itm.Key + "\t" + itm.Value));
+                    Clipboard.SetText(txt);
+                    break;
+
                 case ExportMode.FileJsonArray:
                     var sfd = new SaveFileDialog();
                     if (sfd.ShowDialog() != DialogResult.OK) return;
@@ -226,6 +204,7 @@ namespace Leftware.Utils.TemplateUtil
             cboSourceFormat.SelectedIndex = 0;
 
             LoadTemplates();
+            LoadEnvironment();
         }
 
         private void LoadTemplates()
@@ -307,6 +286,88 @@ namespace Leftware.Utils.TemplateUtil
             lviResults.Columns.Add("Key");
             var col = lviResults.Columns.Add("Value");
             col.Width = 300;
+        }
+
+        private TemplateSourceModel GetTemplateSourceModel()
+        {
+            var sourceType = (SourceType)Enum.Parse(typeof(SourceType), cboSourceType.SelectedItem.ToString());
+            var sourceFormat = sourceType == SourceType.Database ?
+                SourceFormat.DataTable :
+                (SourceFormat)Enum.Parse(typeof(SourceFormat), cboSourceFormat.SelectedIndex.ToString());
+
+            var source = new TemplateSourceModel
+            {
+                SourceType = sourceType,
+                SourceFormat = sourceFormat
+            };
+            switch (sourceType)
+            {
+                case SourceType.Inline:
+                    source.Content = sciSource.Text;
+                    break;
+
+                case SourceType.File:
+                    source.FilePath = txtSourceFile.Text;
+                    break;
+
+                case SourceType.Database:
+                    source.DatabaseType = (DatabaseType)cboDbType.SelectedIndex;
+                    source.ConnectionString = txtConnectionString.Text;
+                    source.Query = sciQuery.Text;
+                    break;
+            }
+
+            return source;
+        }
+
+        private EnvironmentModel GetModel()
+        {
+            var result = new EnvironmentModel();
+
+            var exportMode = (ExportMode)cboExportAs.SelectedIndex;
+            var selectedTab = (SelectableTab)tbc.SelectedIndex;
+            TemplateSourceModel templateModel = GetTemplateSourceModel();
+            result.TemplateModel = templateModel;
+            result.TemplateContent = sciTemplate.Text;
+            result.ResultExportAs = exportMode;
+            result.CurrentTab = selectedTab;
+            return result;
+        }
+
+        private void SaveEnvironmentValues()
+        {
+            var model = GetModel();
+            var json = JsonConvert.SerializeObject(model);
+            var environmentFolder = Utils.GetAppFolder(AppFolder.Environment);
+            var environmentFile = Path.Combine(environmentFolder, "environment.json");
+            File.WriteAllText(environmentFile, json);
+        }
+
+        private void LoadEnvironment()
+        {
+            var environmentFolder = Utils.GetAppFolder(AppFolder.Environment);
+            var environmentFile = Path.Combine(environmentFolder, "environment.json");
+            if (!File.Exists(environmentFile)) return;
+
+            var json = File.ReadAllText(environmentFile);
+            var model = JsonConvert.DeserializeObject<EnvironmentModel>(json);
+            LoadTemplateSourceModel(model.TemplateModel);
+            sciTemplate.Text = model.TemplateContent;
+            cboExportAs.SelectedIndex = (int)model.ResultExportAs;
+            tbc.SelectedIndex = (int)model.CurrentTab;
+        }
+
+        private void LoadTemplateSourceModel(TemplateSourceModel src)
+        {
+            cboSourceType.SelectedItem = src.SourceType.ToString();
+            cboSourceFormat.SelectedIndex = src.SourceType == SourceType.Database ?
+                -1 :
+                (int)src.SourceFormat;
+            sciSource.Text = src.Content;
+            txtSourceFile.Text = src.FilePath;
+            cboDbType.SelectedIndex = (int)src.DatabaseType;
+            txtConnectionString.Text = src.ConnectionString;
+            sciQuery.Text = src.Query;
         }
     }
 }

@@ -6,7 +6,11 @@
 
     public enum DatabaseType { SqlServer, Sqlite }
 
-    public enum AppFolder { Templates, Sources }
+    public enum AppFolder { Templates, Sources,
+        Environment
+    }
 
-    public enum ExportMode { FileJsonArray, FolderTextFiles }
+    public enum ExportMode { ClipboardSeparatedText, FileJsonArray, FolderTextFiles }
+
+    public enum SelectableTab { Source, Template, Results }
 }

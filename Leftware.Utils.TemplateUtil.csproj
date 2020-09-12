@@ -107,6 +107,7 @@
       <DependentUpon>FrmMain.cs</DependentUpon>
     </Compile>
     <Compile Include="GenericCsvItem.cs" />
+    <Compile Include="Model\EnvironmentModel.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Prompt.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -117,7 +118,7 @@
     <Compile Include="SourceProviderFactory.cs" />
     <Compile Include="SourceProviderJsonArray.cs" />
     <Compile Include="SourceProviderJsonObject.cs" />
-    <Compile Include="TemplateSourceModel.cs" />
+    <Compile Include="Model\TemplateSourceModel.cs" />
     <Compile Include="Utils.cs" />
     <EmbeddedResource Include="FrmMain.resx">
       <DependentUpon>FrmMain.cs</DependentUpon>
